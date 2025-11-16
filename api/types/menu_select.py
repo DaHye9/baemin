@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Literal
 
 import pydantic
+
 from api.types.common import statusT
 
 ErrorT = Literal['INSUFFICIENT_INGREDIENTS', 'INVALID REQUEST', 'MENU_NOT_FOUND']
@@ -25,10 +26,12 @@ class MenuSelectResponse(pydantic.BaseModel):
     error_code: ErrorT | None
 
     @pydantic.field_validator('timestamp', mode='before')
+    @classmethod
     def parse_timestamp(cls, value: str) -> datetime:
         return datetime.fromisoformat(value)
 
     @pydantic.model_validator(mode='after')
+    @classmethod
     def check_error_code(cls, model: 'MenuSelectResponse') -> 'MenuSelectResponse':
         if model.status == 'ERROR' and not model.error_code:
             raise ValueError('error_code must be provided when status is ERROR')
