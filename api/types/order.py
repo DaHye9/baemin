@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Literal
 
 import pydantic
+
 from api.types.common import statusT
 
 dataStatusT = Literal['INITIALIZING']
@@ -21,11 +22,13 @@ class OrderData(pydantic.BaseModel):
     createdAt: datetime
     memberInfo: MemberInfo
 
-    @pydantic.field_validator('created_at', mode='before')
+    @pydantic.field_validator('createdAt', mode='before')
+    @classmethod
     def parse_created_at(cls, value: str) -> datetime:
         return datetime.fromisoformat(value)
 
-class PostResponse(pydantic.BaseModel):
+
+class OrderResponse(pydantic.BaseModel):
     status: statusT
     message: str
     timestamp: datetime
@@ -33,11 +36,13 @@ class PostResponse(pydantic.BaseModel):
     error_code: ErrorT | None
 
     @pydantic.field_validator('timestamp', mode='before')
+    @classmethod
     def parse_timestamp(cls, value: str) -> datetime:
         return datetime.fromisoformat(value)
 
     @pydantic.model_validator(mode='after')
-    def check_error_code(cls, model: 'PostResponse') -> 'PostResponse':
+    @classmethod
+    def check_error_code(cls, model: 'OrderResponse') -> 'OrderResponse':
         if model.status == 'ERROR' and not model.error_code:
             raise ValueError('error_code must be provided when status is ERROR')
         return model
